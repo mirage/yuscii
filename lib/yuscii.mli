@@ -2,6 +2,8 @@ type decoder
 type src = [ `Manual | `Channel of in_channel | `String of string ]
 type decode = [ `Await | `End | `Uchar of Uchar.t | `Malformed of string ]
 
+val pp_decode: Format.formatter -> decode -> unit
+
 val src: decoder -> Bytes.t -> int -> int -> unit
 val decoder: src -> decoder
 val decode: decoder -> decode

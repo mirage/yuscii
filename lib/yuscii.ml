@@ -40,6 +40,16 @@ let unsafe_byte source off pos =
 type src = [ `Channel of in_channel | `String of string | `Manual ]
 type decode = [ `Await | `End | `Malformed of string | `Uchar of Uchar.t ]
 
+let pp_decode ppf = function
+  | `Uchar u -> pp ppf "@[`Uchar U+%04X@]" (Uchar.to_int u)
+  | `End -> pp ppf "`End"
+  | `Await -> pp ppf "`Await"
+  | `Malformed s ->
+    let l = String.length s in
+    pp ppf "@[`Malformed (";
+    for i = 0 to l - 1 do pp ppf "%02X" (Char.code s.[i]) done;
+    pp ppf ")@]"
+
 type decoder =
   { src : src
   ; mutable i : Bytes.t
@@ -93,6 +103,11 @@ let consume k byte_count decoder =
   ; decoder.byte_count <- decoder.byte_count + byte_count
   ; decoder.k decoder
 
+let finish decoder =
+  if decoder.f_open || decoder.high <> 0
+  then `Malformed "" (* XXX(dinosaure): other error message? *)
+  else `End
+
 let rec decode_utf_7 decoder =
   let rem = i_rem decoder in
   let malformed n =
@@ -103,7 +118,7 @@ let rec decode_utf_7 decoder =
       n decoder in
 
   if rem <= 0
-  then (if rem < 0 then `End else refill decode_utf_7 decoder)
+  then (if rem < 0 then finish decoder else refill decode_utf_7 decoder)
   else
     let byte = unsafe_byte decoder.i decoder.i_off decoder.i_pos in
 

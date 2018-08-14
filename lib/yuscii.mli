@@ -9,6 +9,9 @@ type src = [ `Manual | `Channel of in_channel | `String of string ]
 
 type decode = [ `Await | `End | `Uchar of Uchar.t | `Malformed of string ]
 
+val pp_decode: Format.formatter -> decode -> unit
+(** [pp_decode ppf v] prints an unspecified representation of [v] on [ppf]. *)
+
 val src: decoder -> Bytes.t -> int -> int -> unit
 (** [src d s j l] provides [d] with [l] bytes to read, starting at [j] in [s].
    This byte range is read by calls to {!decode} with [d] until [`Await] is

@@ -1,5 +1,5 @@
 [Yuscii](https://en.wikipedia.org/wiki/YUSCII)
-==============================================
+----------------------------------------------
 
 Yuscii is a little library to decode an UTF-7 ([RFC
 2152](https://tools.ietf.org/html/rfc2152) for instance) input flow to Unicode.

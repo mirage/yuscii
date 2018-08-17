@@ -61,11 +61,7 @@ type decoder =
   ; mutable high : int
   ; mutable f_open : bool
   ; mutable f_used : bool
-  ; mutable last_cr : bool
-  ; mutable line : int
-  ; mutable column : int
   ; mutable byte_count : int
-  ; mutable count : int
   ; mutable pp : decoder -> [ `Malformed of string | `Uchar of Uchar.t ] -> decode
   ; mutable k : decoder -> decode }
 
@@ -219,47 +215,7 @@ and decode_shifted_unicode byte decoder =
           ( decoder.i_pos <- decoder.i_pos + 1
           ; consume decode_utf_7 1 decoder))
 
-let nline decoder =
-    decoder.column <- 0
-  ; decoder.line <- decoder.line + 1
-
-let ncol decoder =
-  decoder.column <- decoder.column + 1
-
-let ncount decoder =
-  decoder.count <- decoder.count + 1
-
-let cr decoder cr =
-  decoder.last_cr <- cr
-
-let pp_utf_7 decoder = function
-  | `Malformed _ as v ->
-    cr decoder false
-  ; ncount decoder
-  ; ncol decoder
-  ; v
-  | `Uchar u as v -> match Uchar.to_int u with
-    | 0x000A (* LF *) ->
-      let last_cr = decoder.last_cr in
-      cr decoder false
-    ; ncount decoder
-    ; if last_cr then v
-      else (nline decoder; v)
-    | 0x000D (* CR *) ->
-      cr decoder true
-    ; ncount decoder
-    ; nline decoder
-    ; v
-    | (0x0085 | 0x000C | 0x2028 | 0x2029) (* NEL | FF | LS | PS *) ->
-      cr decoder false
-    ; ncount decoder
-    ; nline decoder
-    ; v
-    | _ ->
-      cr decoder false
-    ; ncount decoder
-    ; ncol decoder
-    ; v
+let pp_utf_7 decoder v = (v :> decode)
 
 let decoder src =
   let pp = pp_utf_7 in
@@ -278,19 +234,12 @@ let decoder src =
   ; high = 0
   ; f_open = false
   ; f_used = false
-  ; line = 1
-  ; column = 0
-  ; count = 0
   ; byte_count = 0
-  ; last_cr = false
   ; pp
   ; k }
 
 let decode decoder = decoder.k decoder
-let decoder_line decoder = decoder.line
-let decoder_column decoder = decoder.column
 let decoder_byte_count decoder = decoder.byte_count
-let decoder_count decoder = decoder.count
 let decoder_src decoder = decoder.src
 
 module String = struct

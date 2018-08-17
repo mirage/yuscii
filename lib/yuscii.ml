@@ -128,7 +128,7 @@ let rec decode_utf_7 decoder =
           ; decoder.f_used <- false
           ; decoder.bits <- 0
           ; decoder.i_pos <- decoder.i_pos + 1
-          ; consume decode_utf_7 1 decoder)
+          ; consume decode_utf_7 1 decoder )
         else
           ( let uchar byte = `Uchar (Uchar.unsafe_of_int byte) in
 
@@ -141,8 +141,9 @@ and decode_shift_character decoder =
   let uchar byte = `Uchar (Uchar.unsafe_of_int byte) in
   (* Also, as a special case, the sequence "+-" may be used to encoder the
      character "+". *)
-    decoder.i_pos <- decoder.i_pos + 1
-  ; ret decode_utf_7 (uchar 0x2b) 1 decoder
+  decoder.i_pos <- decoder.i_pos + 1
+; decoder.f_open <- false
+; ret decode_utf_7 (uchar 0x2b) 1 decoder
 
 and decode_shifted_unicode byte decoder =
   let uchar byte = `Uchar (Uchar.unsafe_of_int byte) in
@@ -156,25 +157,27 @@ and decode_shifted_unicode byte decoder =
   (* currently shift decoding. *)
 
   if not decoder.f_used && byte = 0x2d then decode_shift_character decoder else
-  let value = b64d byte in
-  if value < 0 then
-    if decoder.bits >= 6 then malformed 1 else         (* too many bits in
-                                                          accumulation buffer *)
-    let mask = (1 lsl decoder.bits) - 1 in
-    if decoder.acc land mask <> 0 then malformed 1 else (* non-zero trailing
-                                                          base64 bits *)
-    ( decoder.f_open <- false
-    ; if byte <> 0x2d then
-        if decoder.high <> 0 then malformed 1 else     (* unpaired high
-                                                          surrogate *)
-        if decoder.f_used then
-          ( decoder.i_pos <- decoder.i_pos + 1
-          ; ret decode_utf_7 (uchar byte) 1 decoder)
-        else malformed 1                               (* shift encoded ended
-                                                          without being used *)
-      else
-        ( decoder.i_pos <- decoder.i_pos + 1
-        ; consume decode_utf_7 1 decoder))
+    let value = b64d byte in
+    if value < 0 then
+      if decoder.bits >= 6 then malformed 1 else            (* too many bits in
+                                                               accumulation
+                                                               buffer *)
+        let mask = (1 lsl decoder.bits) - 1 in
+        if decoder.acc land mask <> 0 then malformed 1 else (* non-zero trailing
+                                                               base64 bits *)
+          ( decoder.f_open <- false
+          ; if byte <> 0x2d then
+              if decoder.high <> 0 then malformed 1 else    (* unpaired high
+                                                               surrogate *)
+              if decoder.f_used then
+                ( decoder.i_pos <- decoder.i_pos + 1
+                ; ret decode_utf_7 (uchar byte) 1 decoder)
+              else malformed 1                              (* shift encoded
+                                                               ended without
+                                                               being used *)
+            else
+              ( decoder.i_pos <- decoder.i_pos + 1
+              ; consume decode_utf_7 1 decoder))
     else
       (* accumulate more base64 bits. *)
       ( decoder.f_used <- true
@@ -194,7 +197,7 @@ and decode_shifted_unicode byte decoder =
                   ( let high = decoder.high in
                     decoder.high <- 0
                   ; let code_point =
-                        ((high - 0xd800) * 0x400)
+                      ((high - 0xd800) * 0x400)
                       + ((byte - 0xdc00) + 0x10000) in
                     decoder.i_pos <- decoder.i_pos + 1
                   ; ret decode_utf_7 (uchar code_point) 1 decoder))
@@ -204,8 +207,8 @@ and decode_shifted_unicode byte decoder =
               ( decoder.high <- byte
               ; decoder.i_pos <- decoder.i_pos + 1
               ; consume decode_utf_7 1 decoder)
-            else if is_low byte then malformed 1       (* unpaired low
-                                                          surrogate *)
+            else if is_low byte then malformed 1            (* unpaired low
+                                                               surrogate *)
             else
               (* not surrogate. *)
               ( decoder.i_pos <- decoder.i_pos + 1

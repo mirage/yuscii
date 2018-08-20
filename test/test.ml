@@ -64,10 +64,13 @@ let conv7 ~f ~t s () =
       Fmt.epr "%a: conv7 was killed by a signal (%d).\n%!" Fmt.(styled `Red string) "[ERROR]" n
     | Unix.WSTOPPED n ->
       Fmt.epr "%a: conv7 was stopped by a signal (%d).\n%!" Fmt.(styled `Red string) "[ERROR]" n in
-    let x = Buffer.contents rs in Buffer.clear rs; x
+    let x = Buffer.contents rs in
+      Buffer.clear rs
+    ; Buffer.clear er
+    ; x
 
-let generator = conv7 ~f:`UTF_8 ~t:`UTF_7
-let oracle = conv7 ~f:`UTF_7 ~t:`UTF_8
+let generator s () = conv7 ~f:`UTF_8 ~t:`UTF_7 s ()
+let oracle s () = conv7 ~f:`UTF_7 ~t:`UTF_8 s ()
 
 exception Invalid_UTF_8
 
@@ -75,7 +78,7 @@ let generate length =
   let rs = Buffer.create length in
   let rec go rest =
     if rest = 0
-    then Buffer.contents rs
+    then (let x = Buffer.contents rs in Buffer.clear rs; x)
     else
       let n = (Int32.to_int (Random.int32 Int32.max_int) land 0xFFFFFFF) mod 0x10FFFF in
 

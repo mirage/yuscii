@@ -26,10 +26,10 @@ let b64d v =
        0x31; 0x32; 0x33;   -1;   -1;   -1;   -1;   -1; |] in
   if v < 128 then inv.(v) else (-1)
 
-let is_low v =
+let is_high v =
   v >= 0xd800 && v <= 0xdbff
 
-let is_high v =
+let is_low v =
   v >= 0xdc00 && v <= 0xdfff
 
 let malformed source off pos len = `Malformed (Bytes.sub_string source (off + pos) len)
@@ -158,6 +158,7 @@ and decode_shifted_unicode byte decoder =
 
   if not decoder.f_used && byte = 0x2d then decode_shift_character decoder else
     let value = b64d byte in
+
     if value < 0 then
       if decoder.bits >= 6 then malformed 1 else            (* too many bits in
                                                                accumulation
@@ -190,24 +191,25 @@ and decode_shifted_unicode byte decoder =
           ; let code_point =
               (decoder.acc lsr decoder.bits) land 0xffff in
 
-            if decoder.high <> 0
+          if decoder.high <> 0
             then
+              let low = code_point in
+              let high = decoder.high in
               (* next code point must be low surrogate. *)
-              ( if not (is_low byte) then malformed 1 else
-                  ( let high = decoder.high in
-                    decoder.high <- 0
+              ( if not (is_low low) then malformed 1 else
+                  ( decoder.high <- 0
                   ; let code_point =
                       ((high - 0xd800) * 0x400)
-                      + ((byte - 0xdc00) + 0x10000) in
+                      + ((low - 0xdc00) + 0x10000) in
                     decoder.i_pos <- decoder.i_pos + 1
                   ; ret decode_utf_7 (uchar code_point) 1 decoder))
-            else if is_high byte
+            else if is_high code_point
             then
               (* save and recurse to look for low surrogate. *)
-              ( decoder.high <- byte
+              ( decoder.high <- code_point
               ; decoder.i_pos <- decoder.i_pos + 1
               ; consume decode_utf_7 1 decoder)
-            else if is_low byte then malformed 1            (* unpaired low
+            else if is_low code_point then malformed 1      (* unpaired low
                                                                surrogate *)
             else
               (* not surrogate. *)

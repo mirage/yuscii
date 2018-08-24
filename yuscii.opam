@@ -15,7 +15,7 @@ build: [
 build-test: [["jbuilder" "runtest" "-p" name "-j" jobs]]
 
 depends: [
-  "jbuilder" {build}
+  "dune" {build & >= "1.1.1"}
   "fmt"
   "uutf"
   "rresult"

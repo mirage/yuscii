@@ -3,7 +3,6 @@ let io_buffer_size = 65536
 
 let invalid_arg fmt = Format.ksprintf (fun s -> invalid_arg s) fmt
 let invalid_bounds off len = invalid_arg "Invalid bounds (off: %d, len: %d)" off len
-let strf = Format.asprintf
 let pp = Format.fprintf
 
 let b64d v =
@@ -220,7 +219,7 @@ and decode_shifted_unicode byte decoder =
           ( decoder.i_pos <- decoder.i_pos + 1
           ; consume decode_utf_7 1 decoder))
 
-let pp_utf_7 decoder v = (v :> decode)
+let pp_utf_7 _decoder v = (v :> decode)
 
 let decoder src =
   let pp = pp_utf_7 in

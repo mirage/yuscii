@@ -1,26 +1,26 @@
-opam-version: "1.2"
+opam-version: "2.0"
 name:         "yuscii"
 maintainer:   "Romain Calascibetta <romain.calascibetta@gmail.com>"
 authors:      "Romain Calascibetta <romain.calascibetta@gmail.com>"
 homepage:     "https://github.com/dinosaure/yuscii"
 bug-reports:  "https://github.com/dinosaure/yuscii/issues"
-dev-repo:     "https://github.com/dinosaure/yuscii.git"
+dev-repo:     "git+https://github.com/dinosaure/yuscii.git"
 doc:          "https://dinosaure.github.io/yuscii/"
 license:      "MIT"
+synopsis:     "Mapper of UTF-7 to Unicode"
 
 build: [
-  ["jbuilder" "subst" "-p" name] {pinned}
-  ["jbuilder" "build" "-p" name "-j" jobs]
+  ["dune" "subst"]
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
-build-test: [["jbuilder" "runtest" "-p" name "-j" jobs]]
 
 depends: [
-  "dune" {build & >= "1.1.1"}
+  "ocaml" {>= "4.03.0"}
+  "dune" {build}
   "fmt"
   "uutf"
   "rresult"
   "cmdliner"
-  "alcotest" {test}
+  "alcotest" {with-test}
 ]
-
-available: [ocaml-version >= "4.03.0"]

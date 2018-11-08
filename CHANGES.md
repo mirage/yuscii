@@ -1,3 +1,9 @@
+v0.2.1 2018-11-08 Paris (France)
+------------------------------
+
+* Dunify project
+* Update OPAM file
+
 v0.2.0 2018-08-23 Paris (France)
 ------------------------------
 

@@ -1,5 +1,5 @@
 (executable
- (name to_utf8)
+ (name yuscii_to_utf8)
  (package yuscii)
  (public_name yuscii.to_utf8)
  (libraries cmdliner uutf fmt rresult yuscii))

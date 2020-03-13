@@ -3,9 +3,7 @@ external random_seed : unit -> int array = "caml_sys_random_seed"
 let seed = random_seed ()
 
 let () = Fmt.pr "seed: %a.\n%!" Fmt.(Dump.array int) seed
-
 let () = Printexc.record_backtrace true
-
 let () = Random.full_init seed
 
 let pp_chr =

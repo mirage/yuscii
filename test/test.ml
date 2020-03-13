@@ -144,5 +144,5 @@ let random ~length n =
 let () =
   Alcotest.run "yuscii"
     [ ("sample", tests)
-    ; ("random", random ~length:5 5)
-    ; ("random", random ~length:20 1) ]
+    ; ("random (5)", random ~length:5 5)
+    ; ("random (20)", random ~length:20 1) ]

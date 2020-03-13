@@ -3,9 +3,7 @@ external random_seed : unit -> int array = "caml_sys_random_seed"
 let seed = random_seed ()
 
 let () = Fmt.pr "seed: %a.\n%!" Fmt.(Dump.array int) seed
-
 let () = Printexc.record_backtrace true
-
 let () = Random.full_init seed
 
 let pp_chr =
@@ -144,5 +142,5 @@ let random ~length n =
 let () =
   Alcotest.run "yuscii"
     [ ("sample", tests)
-    ; ("random", random ~length:5 5)
-    ; ("random", random ~length:20 1) ]
+    ; ("random (5)", random ~length:5 5)
+    ; ("random (20)", random ~length:20 1) ]
